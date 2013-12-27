@@ -167,7 +167,8 @@ def main():
         syncdb=('database', ),
         test=('failfast', 'testrunner', 'liveserver', 'apps', ),
         validate=(),
-        migrate=('apps', 'skip', 'merge'),
+        migrate=('apps', 'skip', 'merge',),
+        schemamigration=('apps', 'initial', 'auto',),
         collectstatic=('link', ),
         )
 
@@ -190,7 +191,7 @@ def main():
 
     # These params are automatically added to the command if present
     general_params = ('settings', 'pythonpath', 'database',)
-    specific_boolean_params = ('failfast', 'skip', 'merge', 'link')
+    specific_boolean_params = ('failfast', 'skip', 'merge', 'link', 'initial', 'auto')
     end_of_command_params = ('apps', 'cache_table', 'fixtures')
 
     module = AnsibleModule(
@@ -211,7 +212,9 @@ def main():
             skip        = dict(default=None, required=False, choices=BOOLEANS),
             merge       = dict(default=None, required=False, choices=BOOLEANS),
             link        = dict(default=None, required=False, choices=BOOLEANS),
-        ),
+            initial     = dict(default=None, required=False, choices=BOOLEANS),
+            auto        = dict(default=None, required=False, choices=BOOLEANS),
+            ),
     )
 
     command = module.params['command']
