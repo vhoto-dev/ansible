@@ -191,7 +191,7 @@ def main():
 
     # These params are automatically added to the command if present
     general_params = ('settings', 'pythonpath', 'database',)
-    specific_boolean_params = ('failfast', 'skip', 'merge', 'link', 'initial', 'auto', 'delete-ghost-migrations')
+    specific_boolean_params = ('failfast', 'skip', 'merge', 'link', 'initial', 'auto')
     end_of_command_params = ('apps', 'cache_table', 'fixtures')
 
     module = AnsibleModule(
@@ -214,7 +214,7 @@ def main():
             link        = dict(default=None, required=False, choices=BOOLEANS),
             initial     = dict(default=None, required=False, choices=BOOLEANS),
             auto        = dict(default=None, required=False, choices=BOOLEANS),
-            delete_ghost_migrations = dict(default=None, required=False, choices=BOOLEANS, aliases=['delete-ghost-migrations']),
+            delete_ghost_migrations = dict(default=False, required=False, choices=BOOLEANS, aliases=['delete-ghost-migrations']),
             ),
     )
 
