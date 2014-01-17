@@ -167,7 +167,7 @@ def main():
         syncdb=('database', ),
         test=('failfast', 'testrunner', 'liveserver', 'apps', ),
         validate=(),
-        migrate=('apps', 'skip', 'merge',),
+        migrate=('apps', 'skip', 'merge','delete_ghost_migrations'),
         schemamigration=('apps', 'initial', 'auto',),
         collectstatic=('link', ),
         )
@@ -191,7 +191,7 @@ def main():
 
     # These params are automatically added to the command if present
     general_params = ('settings', 'pythonpath', 'database',)
-    specific_boolean_params = ('failfast', 'skip', 'merge', 'link', 'initial', 'auto')
+    specific_boolean_params = ('failfast', 'skip', 'merge', 'link', 'initial', 'auto', 'delete-ghost-migrations')
     end_of_command_params = ('apps', 'cache_table', 'fixtures')
 
     module = AnsibleModule(
@@ -214,6 +214,7 @@ def main():
             link        = dict(default=None, required=False, choices=BOOLEANS),
             initial     = dict(default=None, required=False, choices=BOOLEANS),
             auto        = dict(default=None, required=False, choices=BOOLEANS),
+            delete_ghost_migrations = dict(default=None, required=False, choices=BOOLEANS, aliases=['delete-ghost-migrations']),
             ),
     )
 
@@ -248,6 +249,9 @@ def main():
 
     for param in specific_boolean_params:
         if module.boolean(module.params[param]):
+            if cmd:
+                cmd.replace('_','-')
+                print cmd
             cmd = '%s --%s' % (cmd, param)
 
     # these params always get tacked on the end of the command
