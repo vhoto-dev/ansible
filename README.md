@@ -1,5 +1,8 @@
 [![PyPI version](https://badge.fury.io/py/ansible.png)](http://badge.fury.io/py/ansible)
 
+
+**This fork adds support for Django South schema migrations**
+
 Ansible
 =======
 
