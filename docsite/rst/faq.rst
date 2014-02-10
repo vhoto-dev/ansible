@@ -91,7 +91,7 @@ Where does the configuration file live and what can I configure in it?
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 
-See `intro_configuration`.
+See :doc:`intro_configuration`.
 
 .. _who_would_ever_want_to_disable_cowsay_but_ok_here_is_how:
 
@@ -138,6 +138,42 @@ Then you can use the facts inside your template, like this::
        {{ hostvars[host]['ansible_eth0']['ipv4']['address'] }}
     {% endfor %}
 
+.. _programatic_access_to_a_variable:
+
+How do I access a variable name programatically?
+++++++++++++++++++++++++++++++++++++++++++++++++
+
+An example may come up where we need to get the ipv4 address of an arbitrary interface, where the interface to be used may be supplied
+via a role parameter or other input.  Variable names can be built by adding strings together, like so::
+
+    {{ hostvars[inventory_hostname]['ansible_' + which_interface]['ipv4']['address'] }}
+
+The trick about going through hostvars is neccessary because it's a dictionary of the entire namespace of variables.  'inventory_hostname'
+is a magic variable that indiciates the current host you are looping over in the host loop.
+
+.. _first_host_in_a_group:
+
+How do I access a variable of the first host in a group?
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+What happens if we want the ip address of the first webserver in the webservers group?  Well, we can do that too.  Note that if we
+are using dynamic inventory, which host is the 'first' may not be consistent, so you wouldn't want to do this unless your inventory
+was static and predictable.  (If you are using :doc:`tower`, it will use database order, so this isn't a problem even if you are using cloud
+based inventory scripts).
+
+Anyway, here's the trick::
+
+    {{ hostvars[groups['webservers'][0]]['ansible_eth0']['ipv4']['address'] }}
+
+Notice how we're pulling out the hostname of the first machine of the webservers group.  If you are doing this in a template, you
+could use the Jinja2 '#set' directive to simplify this, or in a playbook, you could also use set_fact:
+
+    - set_fact: headnode={{ groups[['webservers'][0]] }}
+ 
+    - debug: msg={{ hostvars[headnode].ansible_eth0.ipv4.address }}
+
+Notice how we interchanged the bracket syntax for dots -- that can be done anywhere.
+
 .. _file_recursion:
 
 How do I copy files recursively onto a target host?
@@ -179,24 +215,34 @@ Ansible 1.4 will also make remote environment variables available via facts in t
 How do I generate crypted passwords for the user module?
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-Crypted password values can be generated as follows::
+The mkpasswd utility that is available on most Linux systems is a great option::
 
-    openssl passwd -salt <salt> -1 <plaintext>
+    mkpasswd --method=SHA-512
+
+If this utility is not installed on your system (e.g. you are using OS X) then you can still easily
+generate these passwords using Python. First, ensure that the `Passlib <https://code.google.com/p/passlib/>`_
+password hashing library is installed.
+
+    pip install passlib
+
+Once the library is ready, SHA512 password values can then be generated as follows::
+
+    python -c "from passlib.hash import sha512_crypt; print sha512_crypt.encrypt('<password>')"
 
 .. _commercial_support:
 
 Can I get training on Ansible or find commercial support?
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-Yes!  See `AnsibleWorks.com <http://ansibleworks.com>`_ or email `info@ansibleworks.com <mailto:info@ansibleworks.com>`_.
+Yes!  See `our Guru offering <http://www.ansible.com/ansible-guru>_` for online support, and support is also included with :doc:`tower`. You can also read our `service page <http://www.ansible.com/ansible-services>`_ and email `info@ansible.com <mailto:info@ansible.com>`_ for further details.
 
 .. _web_interface:
 
 Is there a web interface / REST API / etc?
 ++++++++++++++++++++++++++++++++++++++++++
 
-Yes!  AnsibleWorks makes a great product that makes Ansible even more powerful
-and easy to use: `AnsibleWorks AWX <http://ansibleworks.com/ansible-awx/>`_.
+Yes!  Ansible, Inc makes a great product that makes Ansible even more powerful
+and easy to use. See :doc:`tower`.
 
 .. _docs_contributions:
 
@@ -210,9 +256,7 @@ Great question!  Documentation for Ansible is kept in the main project git repos
 I don't see my question here
 ++++++++++++++++++++++++++++
 
-We're happy to help.
-
-See the `Resources <http://www.ansibleworks.com/community/>`_ section of the documentation home page for a link to the IRC and Google Group.
+Please see the section below for a link to IRC and the Google Group, where you can ask your question there.
 
 .. seealso::
 

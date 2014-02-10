@@ -32,6 +32,8 @@ import pwd
 import ast
 import traceback
 
+from ansible.utils.string_functions import count_newlines_from_end
+
 class Globals(object):
 
     FILTERS = None
@@ -495,9 +497,22 @@ def template_from_file(basedir, path, vars):
     except jinja2.exceptions.UndefinedError, e:
         raise errors.AnsibleUndefinedVariable("One or more undefined variables: %s" % str(e))
 
-    if data.endswith('\n') and not res.endswith('\n'):
-        res = res + '\n'
-    return template(basedir, res, vars)
+    # The low level calls above do not preserve the newline
+    # characters at the end of the input data, so we use the
+    # calculate the difference in newlines and append them 
+    # to the resulting output for parity
+    res_newlines  = count_newlines_from_end(res)
+    data_newlines = count_newlines_from_end(data)
+    if data_newlines > res_newlines:
+        res += '\n' * (data_newlines - res_newlines)
+
+    if isinstance(res, unicode):
+        # do not try to re-template a unicode string
+        result = res
+    else:
+        result = template(basedir, res, vars)
+
+    return result
 
 def template_from_string(basedir, data, vars, fail_on_undefined=False):
     ''' run a string through the (Jinja2) templating engine '''
@@ -540,6 +555,8 @@ def template_from_string(basedir, data, vars, fail_on_undefined=False):
         except TypeError, te:
             if 'StrictUndefined' in str(te):
                 raise errors.AnsibleUndefinedVariable("unable to look up a name or access an attribute in template string")
+            else:
+                raise errors.AnsibleError("an unexpected type error occured. Error was %s" % te)
         return res
     except (jinja2.exceptions.UndefinedError, errors.AnsibleUndefinedVariable):
         if fail_on_undefined:
